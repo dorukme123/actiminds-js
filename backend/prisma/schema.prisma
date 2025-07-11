@@ -1,15 +1,69 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
-generator client {
-  provider = "prisma-client-js"
-  output   = "../generated/prisma"
-}
-
+// datasource and generator blocks
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Enum for Admin roles to ensure type safety
+enum AdminRole {
+  Superadmin
+  Admin
+  TokenGenerator
+}
+
+// Database models
+model Admin {
+  id              Int       @id @default(autoincrement())
+  username        String    @unique
+  password        String
+  role            AdminRole @default(TokenGenerator)
+  createdStuLinks StuLink[]
+}
+
+model StuLink {
+  id          Int         @id @default(autoincrement())
+  token       String      @unique
+  used        Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  expiresAt   DateTime
+  usedAt      DateTime?
+  creatorId   Int?
+  creator     Admin?      @relation(fields: [creatorId], references: [id], onDelete: SetNull)
+  userSession UserSession?
+}
+
+model User {
+  id            Int           @id @default(autoincrement())
+  name          String
+  username      String        @unique
+  email         String        @unique
+  password      String
+  registeredAt  DateTime      @default(now())
+  isVerified    Boolean       @default(true)
+  sessions      UserSession[]
+  referralCode  String?       @unique
+  referredById  Int?
+  referrer      User?         @relation("UserReferrals", fields: [referredById], references: [id], onDelete: SetNull)
+  referralsMade User[]        @relation("UserReferrals")
+}
+
+model UserSession {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stuLinkId   Int?     @unique
+  stuLinkUsed StuLink? @relation(fields: [stuLinkId], references: [id], onDelete: SetNull)
+  startTime   DateTime @default(now())
+  endTime     DateTime?
+}
+
+model BannedIP {
+  id        Int      @id @default(autoincrement())
+  ipAddress String   @unique
+  reason    String?
+  bannedAt  DateTime @default(now())
 }
