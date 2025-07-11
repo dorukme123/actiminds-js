@@ -2,6 +2,7 @@
 const express = require('express');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
+const config = require('./config');
 require('dotenv').config();
 
 const authRoutes = require('./routes/auth');
@@ -17,22 +18,11 @@ app.use(express.json());
 
 // Rate Limiter Middleware
 const limiter = rateLimit({
-	windowMs: 300000, // 5 minutes (user's setting)
-	max: 50,
+	windowMs: config.rateLimit.windowMs, // <-- Use config value
+	max: config.rateLimit.max,           // <-- Use config value
 	standardHeaders: true,
 	legacyHeaders: false,
-    message: { message: 'Too many requests from this IP, please try again after 5 minutes' },
-    
-    // --- Add this function ---
-    keyGenerator: (req, res) => {
-        // Use a static key for all requests in the test environment
-        if (process.env.NODE_ENV === 'test') {
-          return 'test-key';
-        }
-        // Use the default IP address for production/development
-        return req.ip;
-      },
-    // --- End of addition ---
+    message: { message: `Too many requests from this IP, please try again after ${config.rateLimit.windowMs / 60000} minutes` },
 });
 app.use('/api', limiter);
 
@@ -52,4 +42,4 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 // Export the app for testing purposes
-module.exports = { app, limiter };
+module.exports = app;

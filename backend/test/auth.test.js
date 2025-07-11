@@ -1,15 +1,11 @@
-const fs = require('fs');
-const path = require('path');
-
-const serverPath = path.join(__dirname, '..', 'server.js');
-const bcrypt = require('bcryptjs');
-const supertest = require('supertest');
-const { expect } = require('chai');
-const { PrismaClient } = require('@prisma/client');
-const { app } = require(serverPath); // Using the path we just built and logged
+const {
+  request,
+  expect,
+  bcrypt,
+  PrismaClient,
+} = require('./testHelper.js');
 
 const prisma = new PrismaClient();
-const request = supertest(app);
 
 describe('Auth API - /api/auth', () => {
     // Before each test, we clean the User table to ensure a fresh start.

@@ -1,10 +1,11 @@
-const supertest = require('supertest');
-const { expect } = require('chai');
-const { PrismaClient } = require('@prisma/client');
-const { app } = require('../server.js');
+const {
+  request,
+  expect,
+  bcrypt,
+  PrismaClient,
+} = require('./testHelper.js');
 
 const prisma = new PrismaClient();
-const request = supertest(app);
 
 describe('User API - /api/users', () => {
     let token;
